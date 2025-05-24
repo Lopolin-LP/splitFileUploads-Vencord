@@ -1,0 +1,90 @@
+:root {
+    --sfu-text: #FFF;
+    --sfu-bg: #000;
+}
+
+html.theme-light {
+    --sfu-text: #000;
+    --sfu-bg: #FFF;
+}
+
+.splitFileUploadModal {
+    width: 100%;
+    overflow: auto;
+    margin: 2em 0;
+
+    >*+* {
+        margin-top: 1em;
+    }
+
+    >* {
+        width: 100%;
+        padding: 1em;
+        border-radius: 1em;
+        border-spacing: 1em;
+        background-color: var(--sfu-bg);
+        color: var(--sfu-text);
+    }
+
+    table td {
+        vertical-align: middle;
+    }
+}
+
+.splitFileUploadModal>.splitFileUploadStatus {
+    overflow: auto;
+    display: none;
+    width: auto;
+    padding: 0;
+
+    >* {
+        padding: 1em;
+        text-align: center;
+    }
+
+    &:has(*) {
+        display: block;
+    }
+}
+
+.splitFileUploadModal>.sfuList {
+    overflow-wrap: anywhere;
+    overflow: auto;
+
+    tr {
+        min-height: 2em;
+        border: 0.2em solid var(--sfu-text);
+    }
+
+    tr:first-child {
+        border-top-left-radius: 1em;
+        border-top-right-radius: 1em;
+    }
+
+    tr:last-child {
+        border-bottom-left-radius: 1em;
+        border-bottom-right-radius: 1em;
+    }
+
+    &:not(:has(tr))::after {
+        content: "No Files selected/found";
+    }
+
+    td:last-child {
+        width: 30px;
+        cursor: pointer;
+    }
+
+    button {
+        font-size: inherit;
+        background-color: transparent;
+        color: var(--sfu-text);
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --sfu-text: #000;
+        --sfu-bg: #FFF;
+    }
+}
