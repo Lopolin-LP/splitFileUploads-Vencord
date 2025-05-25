@@ -13,7 +13,7 @@ Allows you to upload any file(s) by optimizing size and splitting the file as mu
 - If any archiving tool adds headers to Split Archives, this plugin will fail COMPLETELY.
 
 ## What If [...] doesn't have the plugin? / The Archive is a bit weird?
-Fear not! Tools like [7-zip](https://www.7-zip.org/) help our in this case! They got all the features this plugin utilizes.
+Fear not! Tools like [7-zip](https://www.7-zip.org/) help out in this case! They got all the features this plugin utilizes.
 
 ## Installation
 1. Download this repo into `userplugins/splitFileUploads`
