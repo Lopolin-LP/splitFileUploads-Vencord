@@ -16,11 +16,13 @@ Allows you to upload any file(s) by optimizing size and splitting the file as mu
 Fear not! Tools like [7-zip](https://www.7-zip.org/) help out in this case! They got all the features this plugin utilizes.
 
 ## Installation
-1. Download this repo into `userplugins/splitFileUploads`
+1. Download this repo into `src/userplugins/splitFileUploads`
 2. Naviate to that folder
 3. `pnpm init`
 4. `pnpm add nanotar`
-5. Reinject Vencord and you're done!
+5. Go back to the root of Vencord's Source Code
+6. run `git apply .\src\userplugins\splitFileUploads\fixcors.patch` or `git apply src/userplugins/splitFileUploads/fixcors.patch`
+7. Reinject Vencord and you're done!
 
 Note: Fancier version with a simple `pnpm i` will come at some point, right now I don't understand any of it!
 
