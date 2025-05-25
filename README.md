@@ -10,7 +10,7 @@ Allows you to upload any file(s) by optimizing size and splitting the file as mu
 ### Limitations:
 - Max. total file size is limited by how much you _can_ upload. If max. per file is 10 MB, you can only upload 100 MB.
 - The receiver either needs this plugin as well, or at least a tool to merge and decompress the files, such as 7-zip.
-- If any archiving tool adds headers to Split Archives, this plugin will fail COMPLETELY.
+- If someone changes the file extensions around, there will be issues, as this doesn't do any fancy file type detection.
 
 ## What If [...] doesn't have the plugin? / The Archive is a bit weird?
 Fear not! Tools like [7-zip](https://www.7-zip.org/) help out in this case! They got all the features this plugin utilizes.

@@ -266,10 +266,13 @@ export class FileDestructor {
             this.final = unsplitFiles(sortSplitFiles(files), fileToFile([files[0]], undefined, { name: removeFileExtensionUnsafe(files[0].name) }));
             // Try to decompress
             this.updateStatus("Decompress");
-            try {
-                this.final = fileToFile([await decompressFile(this.final)], undefined, { name: removeFileExtensionUnsafe(this.final.name) });
-            } catch (e) {
-                console.log(e);
+            const temp1fileext = seperateFileExtensionUnsafe(this.final.name)[1];
+            if (temp1fileext === "gz" || temp1fileext === "zip") {
+                try {
+                    this.final = fileToFile([await decompressFile(this.final)], undefined, { name: removeFileExtensionUnsafe(this.final.name) });
+                } catch (e) {
+                    console.log(e);
+                }
             }
             this.updateStatus("Tar");
             // Try to open as tar
