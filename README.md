@@ -2,6 +2,8 @@
 Allows you to upload any file(s) by optimizing size and splitting the file as much as possible.
 **Warning: Extra installation steps required!**
 
+![Showcase](https://files.catbox.moe/eoxpq2.mp4)
+
 ### Techniques
 1. If there's multiple files, put them into a `.tar` Archive.
 2. Then compress using `.gz`.
