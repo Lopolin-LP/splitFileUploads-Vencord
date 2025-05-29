@@ -201,7 +201,7 @@ export class FileConstructor {
         let { totalsize, maxsize } = options;
         totalsize = totalsize ?? this.getTotalSize(); // Total size of selected files
         maxsize = maxsize ?? this.getMaxFilesize(); // Max Per file
-        return Math.floor(totalsize / maxsize);
+        return Math.max(0, Math.floor((totalsize - 1) / maxsize)); // -1 because otherwise if a file is selected that is EXACTLY the upload limit it will say it requires one split
     }
     getMaxFilesize(): number {
         return (this.nitroAndPayment.getUserMaxFileSize || (() => 0))(); // two functions, run second if first undefined
@@ -232,9 +232,11 @@ export class FileConstructor {
             output = fileToFile([compr], compr, { name: compr.name + ".gz" });
         }
         if (options.split === true) {
-            multiOutput = splitFiles(output, this.getMaxFilesize());
+            const maxfilesize = this.getMaxFilesize();
+            if (maxfilesize !== 0 && output.size > maxfilesize)
+                multiOutput = splitFiles(output, maxfilesize);
         }
-        return multiOutput.length ? multiOutput : [output];
+        return multiOutput.length ? multiOutput : [output]; // 0 evals to false
     }
     constructor() {
         waitFor("getUserMaxFileSize", e => this.nitroAndPayment = e);
@@ -263,7 +265,7 @@ export class FileDestructor {
         this.isDone = new Promise(res => promising_resolve = res);
         (async () => {
             this.updateStatus("Unsplit");
-            this.final = unsplitFiles(sortSplitFiles(files), fileToFile([files[0]], undefined, { name: removeFileExtensionUnsafe(files[0].name) }));
+            this.final = unsplitFiles(sortSplitFiles(files), fileToFile([files[0] ?? []], undefined, { name: removeFileExtensionUnsafe(files[0].name ?? "There are no files!") }));
             // Try to decompress
             this.updateStatus("Decompress");
             const temp1fileext = seperateFileExtensionUnsafe(this.final.name)[1];

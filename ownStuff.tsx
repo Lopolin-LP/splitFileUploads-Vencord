@@ -4,7 +4,9 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+import { showNotification } from "@api/Notifications";
 import { saveFile } from "@utils/web";
+import { ChannelStore, DraftType, PermissionsBits, PermissionStore, UploadHandler } from "@webpack/common";
 
 /**
  * Prompts the user to choose one or multiple file from their system
@@ -36,3 +38,25 @@ export async function downloadFile(file: File) {
         saveFile(file);
     }
 }
+
+export function notifErr(msg: string) {
+    showNotification({
+        title: "SFU Error",
+        body: msg
+    });
+}
+
+export function addAttachments(files: File[], channelId: string) {
+    UploadHandler.promptToUpload(files, ChannelStore.getChannel(channelId), DraftType.ChannelMessage);
+}
+
+// Permission Infos and Attaching, stolen from plugins/fakeNitro
+export function hasPermission(channelId: string, permission: bigint) {
+    const channel = ChannelStore.getChannel(channelId);
+
+    if (!channel || channel.isPrivate()) return true;
+
+    return PermissionStore.can(permission, channel);
+}
+
+export const hasAttachmentPerms = (channelId: string) => hasPermission(channelId, PermissionsBits.ATTACH_FILES);

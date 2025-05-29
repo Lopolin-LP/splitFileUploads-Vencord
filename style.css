@@ -31,7 +31,7 @@ html.theme-light {
     }
 }
 
-.splitFileUploadModal>.splitFileUploadStatus {
+.splitFileUploadModal .splitFileUploadStatus {
     overflow: auto;
     display: none;
     width: auto;
@@ -47,7 +47,13 @@ html.theme-light {
     }
 }
 
-.splitFileUploadModal>.sfuList {
+.splitFileUploadModal .splitFileUploadMultiStatus {
+    >* {
+        margin: 0.5em;
+    }
+}
+
+.splitFileUploadModal .sfuList {
     overflow-wrap: anywhere;
     overflow: auto;
 
@@ -67,7 +73,7 @@ html.theme-light {
     }
 
     &:not(:has(tr))::after {
-        content: "No Files selected/found";
+        content: "No files selected/found";
     }
 
     td:last-child {
