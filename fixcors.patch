@@ -19,26 +19,26 @@ index 1f2d5ec1..0d4fc7c5 100644
      },
      { urls: ["https://raw.githubusercontent.com/*", "*://*.discord.com/*"], types: ["main_frame", "stylesheet"] },
 diff --git a/browser/manifest.json b/browser/manifest.json
-index 3463e46c..5adf3051 100644
+index 3463e46c..b6e33f9e 100644
 --- a/browser/manifest.json
 +++ b/browser/manifest.json
 @@ -12,6 +12,7 @@
  
      "host_permissions": [
          "*://*.discord.com/*",
-+        "https://cdn.discordapp.com/*",
++        "https://cdn.discordapp.com/attachments/*",
          "https://raw.githubusercontent.com/*"
      ],
  
 diff --git a/browser/manifestv2.json b/browser/manifestv2.json
-index 0cb7cb32..0fd5944d 100644
+index 0cb7cb32..2240346d 100644
 --- a/browser/manifestv2.json
 +++ b/browser/manifestv2.json
 @@ -14,6 +14,7 @@
          "webRequest",
          "webRequestBlocking",
          "*://*.discord.com/*",
-+        "https://cdn.discordapp.com/*",
++        "https://cdn.discordapp.com/attachments/*",
          "https://raw.githubusercontent.com/*"
      ],
  
