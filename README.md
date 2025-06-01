@@ -2,6 +2,7 @@
 Allows you to upload any file(s) by optimizing size and splitting the file as much as possible.
 **Warning: Extra installation steps required!**
 
+<!-- I know there's now preview. It's AV1 encoded, not h264. -->
 [Showcase](https://files.catbox.moe/eoxpq2.mp4)
 
 ### Techniques
@@ -12,6 +13,7 @@ Allows you to upload any file(s) by optimizing size and splitting the file as mu
 ### Limitations:
 - The receiver either needs this plugin as well, or at least a tool to merge and decompress the files, such as 7-zip.
 - If someone changes the file extensions around, there will be issues, as this doesn't do any fancy file type detection.
+- Downloading does not work on Userscripts as I didn't find a way to rewrite all response headers coming from `https://cdn.discordapp.com/*` to include `Access-Control-Allow-Origin` and `Access-Control-Allow-Methods`. If you know how, feel free to open a Pull Request, your help is appreciated.
 
 ## What If [...] doesn't have the plugin? / The Archive is a bit weird?
 Fear not! Tools like [7-zip](https://www.7-zip.org/) help out in this case! They got all the features this plugin utilizes.
@@ -27,6 +29,13 @@ Fear not! Tools like [7-zip](https://www.7-zip.org/) help out in this case! They
 8. Now go and read how to [use this plugin](#Usage), as it _can_ be advanced!
 
 Note: Fancier version with a simple `pnpm i` will come at some point, right now I don't understand any of it!
+
+### Why do I need to apply a patch?
+Downloading the files off of discords servers. `https://cdn.discordapp.com/attachments/*` does not include the `Access-Control-Allow-Origin` and `Access-Control-Allow-Methods` headers, which means the (very reasonable) CORS Policy _from Discord themselves_ blocks the connection. This patch file includes additional fixes **that need to be applied in Vencords source code directly** to rewrite the headers to include them. Vencord already does rewrites for a few sites, such as `https://raw.githubusercontent.com/`.
+
+You may ask yourself "wait, why do I see images that were sent as attachments then?!", and the answer is _check the raw data of that message_. You will see all attachments have a URL (to the raw content that can be downloaded), and a Proxy URL, where discord includes those headers, but only for a few specific file types, such as images, videos and text files. The images are loaded from the proxy. The `.001` or `.gz` files aren't detected as text files, and thus are not accessible via their proxy. Unfunnily enough, this also applies to some Videos or Audio files if they are encoded in a format that Discord doesn't understand, such as (the very good) AV1 or (the horrible) AAC.
+
+Read more about the [patch itself below](#the-patch).
 
 ## Usage
 ### Simple Uploading/Downloading
@@ -60,9 +69,26 @@ If you really want to, you can also upload more than 10 split files. For non-Nit
 3. Insert all the links, each on their own new line, just like Online Themes!
 4. Click download, the normal downloading modal should now open.
 
+## The patch
+Now here's the details about the `fixcors.patch` itself, for transparency:
+
+### The files
+  - in the `browser` directory we patch the Vencord Browser Extension.
+    - `background.js` and `mainfest.json` for Manifest V3.
+    - `modifyResponseHeaders.json` and `mainfestv2.json` for Manifest V2.
+    - the manifests ask for permission to modify content from `https://cdn.discordapp.com/attachments/`, while the other file is for actually rewriting the requests coming from discords cdn.
+  - we also need to patch for Electron (to support Discords Clients and Vesktop). This happens in `src/main/index.ts`.
+
+### What it does
+Anything that starts with `https://cdn.discordapp.com/attachments/` will get the following Response Headers (i.e. the Headers received from Discords Servers) rewritten:
+- `Access-Control-Allow-Origin` set to `*` to allow all origins (this means that `discord.com` is allowed to access the files coming from `cdn.discordapp.com`)
+- `Access-Control-Allow-Methods` set to `GET, POST, OPTIONS` to allow different methods of accessing the content from that page. (Search online to learn more.)
+
 ## Dependencies on npm
-- [fflate](https://www.npmjs.com/package/fflate)
-- [nanotar](https://www.npmjs.com/package/nanotar)
+- [fflate](https://www.npmjs.com/package/fflate) for (de)compressing.
+  - Already included in Vencord.
+- [nanotar](https://www.npmjs.com/package/nanotar) for bundling multiple files together.
+  - Windows 11 Explorer supports tar by default, otherwise just use [7-zip](https://www.7-zip.org/), or whatever your linux distro has.
 
 ## Credits
 - Icons by [Tabler Icons](https://tabler.io/icons)
