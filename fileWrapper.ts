@@ -232,12 +232,13 @@ export class SFD {
                         discordFilesCache[attach.id] = outfile; // Cache it
                     } else {
                         console.error("Failed download!", xhr.status, xhr.response, xhr);
-                        status.setStatus("Failed download!");
+                        status.setStatus(`Failed download! HTTP Code was ${xhr.status}.`);
                         promising_resolver(fileToFile([], undefined));
                     }
                 };
                 xhr.onerror = function (e) {
                     console.error("There was an error", e, xhr);
+                    status.setStatus("Failed download! Check the console.");
                 };
                 xhr.send();
             }
