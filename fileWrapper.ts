@@ -14,6 +14,9 @@ import { addAttachments, downloadFile, hasAttachmentPerms, notifErr } from "./ow
 
 // Split Message Uploader
 export const currentSMU: { [channelId: string]: SMU; } = {};
+/**
+ * Split Message Uploader
+ */
 export class SMU {
     fileBatches: File[][];
     channelId: string;
@@ -37,6 +40,9 @@ export class SMU {
 }
 
 // Split Message Downloader
+/**
+ * Split Message Downloader
+ */
 export class SMD {
     parsedMessages: Message[];
     constructor(messageURLs: string[]) {
@@ -58,17 +64,31 @@ export class SMD {
 // Split File Uploader
 type SFU_settings = { compress: boolean, split: boolean; name: string; };
 type SFU_react_settings = { [K in keyof SFU_settings]: [SFU_settings[keyof SFU_settings], Function] };
+/**
+ * Split File Uploader
+ */
 export class SFU {
+    /** The default settings used for the FileConstructor */
     public default_settings: SFU_settings = {
         compress: false,
         split: true,
         name: "Unknown"
     };
+    /** The channel id in which this is happening */
     channelId: string;
+    /** The custom HTML ELement in React, used for displaying some informations */
     elm: HTMLElement | null = null;
+    /** The corresponding FileConstructor */
     fileconst: FileConstructor;
+    /** The Key of the React Modal */
     modalKey: string = "";
+    /** The HTML table containing the current files */
     table: HTMLElement | null = null;
+    /**
+     * Start the FileConstructor process
+     * @param settings The settings for FileConstructor
+     * @returns true if the setup was successful. False if there aren't any files. Nothing if something went wrong.
+     */
     async start(settings: SFU_settings) {
         if (this.fileconst.files.length === 0) return false;
         showToast("Starting SFU", "message", { duration: 1000 });
@@ -95,6 +115,10 @@ export class SFU {
         })();
         return true;
     }
+    /**
+     * Add new files to the FileConstructor
+     * @param list a FileList, commonly received from input events
+     */
     addFiles(list: FileList) {
         if (this.elm === null) return notifErr("Table element isn't defined.");
         // Add Files to UI + Attribute
@@ -124,6 +148,10 @@ export class SFU {
         // TODO: Add more stats to the file list!
         this.updateFileSizes();
     }
+    /**
+     * Removes a file from the FileConstructor
+     * @param index the how manyth file in the array it is
+     */
     removeFile(index: number) {
         if (index === -1 || this.fileconst.files.length < index) return notifErr("Invalid Index for removal.");
         if (this.elm === null) return notifErr("Table element isn't defined.");
@@ -134,6 +162,10 @@ export class SFU {
         }
         this.updateFileSizes();
     }
+    /**
+     * Sets the custom HTML Element in the React Modal. Can only be done once.
+     * @param elm The Element
+     */
     setElm(elm: HTMLElement) {
         if (this.elm !== null) return; // Fail silently, this is due to Reacts Renderer
         if (elm === null) return notifErr("setElm elm was null!");
@@ -141,6 +173,9 @@ export class SFU {
         this.elm = elm;
         this.table = elm.querySelector("table");
     }
+    /**
+     * Update the infographic showing the max file size, the current total and so on.
+     */
     updateFileSizes() {
         try {
             [
@@ -155,21 +190,40 @@ export class SFU {
             console.error(e);
         }
     }
+    /**
+     * Create new SFU instance
+     */
     constructor() {
         this.fileconst = new FileConstructor();
         this.channelId = SelectedChannelStore.getChannelId();
     }
+    /**
+     * Run once the HTML Elements are available
+     */
     postConstructor() {
         this.updateFileSizes();
     }
 }
 
 // Split File Downloader
+/**
+ * Each attachment has a unique ID. If we downloaded a File from discords servers, we cache them.
+ */
 const discordFilesCache: { [key: string]: File; } = {};
 
+/**
+ * Split File Destructor Status - An internal class for the SFD class. It's used to update the status of the download process.
+ */
 class SFDstatus {
+    /** All statuses will be in here */
     parent: HTMLElement;
+    /** the different statuses with their corresponsing HTML Elements, prefix and setStatus function */
     statuses: { elm: HTMLElement; prefix: string | undefined; setStatus: (msg: string) => void; }[] = [];
+    /**
+     * Add a new status that can be updated.
+     * @param prefix The prefix to use for this status. Used to distinguish it from others
+     * @returns an object with  the element, the prefix and the function to update the status.
+     */
     addStatus(prefix?: string) {
         const elm = document.createElement("div");
         this.parent.appendChild(elm);
@@ -187,6 +241,10 @@ class SFDstatus {
         this.statuses.push(out);
         return out;
     }
+    /**
+     * Create a new SFDstatus instance.
+     * @param statusElmToUse The status Element to use
+     */
     constructor(statusElmToUse: HTMLElement) {
         this.parent = document.createElement("div");
         this.parent.classList.add("splitFileUploadMultiStatus");
@@ -194,16 +252,32 @@ class SFDstatus {
     }
 }
 
+/**
+ * Split File Destructor. Requires one or more messages.
+ */
 export class SFD {
+    /** The corresponding FileDestructor instance */
     filedest: FileDestructor | undefined;
+    /** If the FileDestructor is finished */
     isDone: Promise<void>; // Is done AFTER filedest.isDone
+    /** The Custom HTML Element in the React Modal */
     elm: HTMLElement | null = null;
+    /** The Table in the React Modal containing the parsed files */
     table: HTMLElement | null = null;
+    /** If the Element was added yet */
     isElm: Promise<void>;
+    /** Resolve the isElm Promise */
     // @ts-ignore that's a lie
     isElmResolver: () => void;
+    /** The Key of the React Modal */
     modalKey: string = "";
+    /** The status Element containing the progress of downloading files and the FileDestructor */
     statusElm: HTMLElement;
+    /**
+     * Downloads attachments from Discord's Server. Make sure you applies some CORS fixes!
+     * @param attachments The Attachments to get
+     * @returns A promise that resolves to an array of downloaded Files
+     */
     downloadDiscordFiles(attachments: MessageAttachment[]): Promise<File[]> {
         const statusManager = new SFDstatus(this.statusElm);
         return Promise.all(attachments.filter(attach => isValidSplitFile(attach.filename)).map(async attach => {
@@ -245,6 +319,10 @@ export class SFD {
             return promising;
         }));
     }
+    /**
+     * Set the HTML Element
+     * @param elm The Element
+     */
     setElm(elm: HTMLElement) {
         if (this.elm !== null) return; // Fail silently, this is due to Reacts Renderer
         if (elm === null) return notifErr("setElm elm was null!");
@@ -254,6 +332,11 @@ export class SFD {
         this.elm.querySelector(".splitFileUploadStatus")?.append(this.statusElm);
         this.isElmResolver();
     }
+    /**
+     * Add a new Element to the downloaded files table
+     * @param name The filename
+     * @param download An object only there when it can be downloaded. Index will be passed to downloadSpecificFile.
+     */
     async addElm(name: string, download?: { index: number; }) {
         await this.isElm;
         const entry = document.createElement("tr");
@@ -277,13 +360,21 @@ export class SFD {
         // @ts-ignore we are waiting for it to be there
         this.table.append(entry);
     }
+    /** Download all parsed files. Downloads the final File found in FileDestructor, which is either a Tar or just the raw file. */
     downloadAll() {
         if (this.filedest?.final) downloadFile(this.filedest.final);
     }
+    /**
+     * Download a specific parsed file from the parsedFiles attribute in FileDestructor.
+     * @param index The index of it.
+     */
     downloadSpecificFile(index: number) {
         const file = this.filedest?.parsedFiles[index];
         if (file) downloadFile(file);
     }
+    /**
+     * List all files after the FileDestructor is done doing its thing.
+     */
     async listFiles() {
         await Promise.all([this.isDone, this.isElm]);
         if (this.filedest?.isTar === false) {
@@ -296,10 +387,22 @@ export class SFD {
             this.filedest?.parsedFiles.forEach((item, index) => {
                 this.addElm(item.name, { index: index });
             });
-            const textUnparsable = (): string => { if (this.filedest?.unparsable) return ` There were ${this.filedest?.unparsable} unparsable entities.`; else return ""; };
-            (this.elm?.querySelector(".sfuInfo") as HTMLElement).innerText = "Entries without download button are directories." + textUnparsable();
+            const textUnparsable = (): string => { if (this.filedest?.unparsable) return `There were ${this.filedest?.unparsable} unparsable entities.`; else return ""; };
+            const sfuInfo = this.elm?.querySelector(".sfuInfo") as HTMLElement;
+            function addInfo(msg: string) {
+                if (msg === "") return;
+                const elm = document.createElement("div");
+                elm.innerText = msg;
+                sfuInfo.appendChild(elm);
+            }
+            addInfo(this.filedest?.knownDirectories.length ? "Entries without download button are directories." : "");
+            addInfo(textUnparsable());
         }
     }
+    /**
+     * Create a new instance of SFD.
+     * @param message The message(s) to use.
+     */
     constructor(message: Message | Message[]) {
         let promising_resolver;
         this.isDone = new Promise(res => promising_resolver = res);
@@ -327,6 +430,9 @@ export class SFD {
             promising_resolver();
         })();
     }
+    /**
+     * Run this after the HTML Element was made available.
+     */
     async postConstructor() {
         await this.isDone;
         this.listFiles();

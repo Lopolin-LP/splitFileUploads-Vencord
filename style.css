@@ -47,6 +47,14 @@ html.theme-light {
     }
 }
 
+.splitFileUploadModal .sfuInfoParent {
+    display: none;
+
+    &:has(.sfuInfo *) {
+        display: block;
+    }
+}
+
 .splitFileUploadModal .splitFileUploadMultiStatus {
     >* {
         margin: 0.5em;

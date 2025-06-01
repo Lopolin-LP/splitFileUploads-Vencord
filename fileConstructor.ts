@@ -29,6 +29,12 @@ import * as ntar from "nanotar";
 //     console.error(e);
 // }
 
+/**
+ * Turns an amount of bytes into a human readable string (1024 -> "1.0 KB").
+ * @param num Amount of bytes
+ * @param depth Which level of conversion is already reached. If the input is in MB instead of B, you set the depth to 2.
+ * @returns A human readable string
+ */
 export function bytesToText(num: number, depth: number = 0): string { // Grabbed from justified-gallery-viewer, my personal project
     for (; String(Math.round(num)).length > 3 && depth < 5; depth++) {
         num /= 1024;
@@ -56,6 +62,15 @@ export function bytesToText(num: number, depth: number = 0): string { // Grabbed
     }
     return num.toFixed(1) + append;
 }
+
+/**
+ * Turn a number into a proper file extension. Used when splitting files.
+ * 1 -> "001"
+ * 2 -> "002"
+ * 11 -> "011"
+ * @param number The number
+ * @returns A formatted string for the extension.
+ */
 export function turnToThree(number) {
     const arr = number.toString().split("");
     switch (arr.length) {
@@ -75,6 +90,11 @@ export function turnToThree(number) {
 
 // My own implementation corrupted lmao --- NVM I was just dumb with how the compress function, oh well
 // https://github.com/101arrowz/fflate/blob/f7873560ad229c22c4b23b06c6a3806ffde77569/demo/components/code-box/sandbox.ts#L92
+/**
+ * Turns a File into an array of 8-bit unsigned integers - MDN. A reverse function is not needed, as you can easily create a File out of a Uint8Array.
+ * @param file The input File
+ * @returns the files content as a Uint8Array
+ */
 export async function fileToU8(file: File): Promise<Uint8Array<ArrayBuffer>> {
     let resolve: (val: Uint8Array<ArrayBuffer>) => void;
     const prom = new Promise((res: typeof resolve) => resolve = res);
@@ -86,6 +106,13 @@ export async function fileToU8(file: File): Promise<Uint8Array<ArrayBuffer>> {
     return prom;
 }
 
+/**
+ * Turns a File into a File. Useful for changing the filename or other things without the overhead.
+ * @param content The files content. Can be for example another File or a Uint8Array.
+ * @param blueprint Use another File as a "blueprint", i.e. their name and attributes, but not their content.
+ * @param attr Change a thing or two around, like the filename for example.
+ * @returns Another File
+ */
 export function fileToFile(content: BlobPart[] | undefined, blueprint: File | undefined, attr?: { name?: string, type?: string, lastModified?: number; }) {
     /* output a new File copying all data from the original, except when you don't */
     blueprint ??= new File([], "");
@@ -96,16 +123,31 @@ export function fileToFile(content: BlobPart[] | undefined, blueprint: File | un
     }
 }
 
+/**
+ * CoolFile.zip -> [CoolFile, zip]
+ * @param filename The filename
+ * @returns An array consisting of the file name and their extension, but seperated
+ */
 export function seperateFileExtensionUnsafe(filename: string): [string, string] {
     const all = filename.split(".");
     return [all.slice(0, -1).join("."), all.pop() ?? ""];
 }
 
+/**
+ * CoolFile.zip -> CoolFile
+ * @param filename The filename
+ * @returns The filename as a string, without extension
+ */
 export function removeFileExtensionUnsafe(filename: string) {
     // Unsafe because it's not perfect, at all.
     return filename.split(".").slice(0, -1).join(".");
 }
 
+/**
+ * Compress an input File using GZIP
+ * @param input The File to compress
+ * @returns Another File, but with its contents gzipped. Filename stays unchanged.
+ */
 export async function compressFile(input: File): Promise<File> {
     // let resolveToFinish: (value: File) => void;
     // const waitForFinish = new Promise((resolve: (value: File) => void) => {
@@ -115,10 +157,21 @@ export async function compressFile(input: File): Promise<File> {
     const garch = gzipSync(await fileToU8(input), { filename: input.name, level: 9, mem: 8 });
     return fileToFile([garch.buffer as ArrayBuffer], input);
 }
+/**
+ * Decompress an Input File, using whatever fflate detects.
+ * @param input The File to decompress
+ * @returns The File, but decompressed. Filename stays unchanged.
+ */
 export async function decompressFile(input: File): Promise<File> {
     const ungarch = decompressSync(await fileToU8(input));
     return fileToFile([ungarch.buffer as ArrayBuffer], input);
 }
+/**
+ * Split a File into multiple parts.
+ * @param file The File to split
+ * @param maxsizebytes How big each part is at max allowed to be
+ * @returns An array of Files, each split correctly. All Files receive the """turnToThree""" extension.
+ */
 export function splitFiles(file: File, maxsizebytes: number): File[] {
     const outfiles: File[] = [];
     const splitAfter = maxsizebytes; // 10 MB
@@ -130,16 +183,32 @@ export function splitFiles(file: File, maxsizebytes: number): File[] {
     outfiles.push(new File([file.slice((totalSplits - 1) * splitAfter, file.size)], file.name + "." + turnToThree(totalSplits)));
     return outfiles;
 }
-export function unsplitFiles(files: File[], outputBlueprint: File): File {
+/**
+ * Recombine multiple Files.
+ * @param files The Files to recombine
+ * @param outputBlueprint The File to take the attributes from. If left undefined, it will use the first File found in the files parameter.
+ * @returns Returns the Combined File
+ */
+export function unsplitFiles(files: File[], outputBlueprint: File | undefined): File {
     // We expect files to be sorted
     return fileToFile(files, outputBlueprint ?? files[0]);
 }
+/**
+ * Check if the file extension is one from a split file, such as 001 or 002
+ * @param filename The filename with extension to check
+ * @returns true if it's valid, otherwise false
+ */
 export function isValidSplitFile(filename: string) {
     const ext = seperateFileExtensionUnsafe(filename)[1];
     if (ext.length !== 3) return false;
     const extArr = ext.split("").map(ext => parseInt(ext)).map(ext => !isNaN(ext));
     return extArr.reduce((p, c) => Boolean(Number(p) & Number(c)), true);
 }
+/**
+ * Sorts an array of files based on split file extension. No other extensions supported.
+ * @param files An array of Files to sort
+ * @returns A sorted array
+ */
 export function sortSplitFiles(files: File[]): File[] {
     function tryNum(input: string): number {
         const ret = parseInt(input);
@@ -151,6 +220,12 @@ export function sortSplitFiles(files: File[]): File[] {
     return sortedFiles.map(sorted => sorted[1]);
 }
 
+/**
+ * Create a Tar archive using a few files. This is a simple wrapper around nanotar, because we don't need all the advanced features like directories and more.
+ * @param files The files to bundle
+ * @param archiveBlueprint Blueprint for the output tar file
+ * @returns The final tar archive
+ */
 export async function createTar(files: File[], archiveBlueprint: File): Promise<File> {
     const mappedFiles: ntar.TarFileInput[] = await Promise.all(files.map(async (file: File) => {
         return {
@@ -162,6 +237,12 @@ export async function createTar(files: File[], archiveBlueprint: File): Promise<
     return fileToFile([data], archiveBlueprint, { type: "application/tar" });
 }
 
+/**
+ * Open a given tar archive. If it's not a valid archive, it will **fail silently** and produce garbage data.
+ * @param file The tar file
+ * @param opts If we should parse the files and/or directories
+ * @returns An object with parsed Files, Directories and unparsable things.
+ */
 export async function openTar(file: File, opts?: { parseFiles?: boolean, parseDirectories?: boolean; } | undefined): Promise<{ parsedFiles: File[], knownDirectories: string[], unparsable: number; }> {
     // Returns PrasedTarFileItems, top-level Files and top-level Folders
     opts = Object.assign({ parseFiles: true, parseDirectories: true }, opts);
@@ -185,24 +266,47 @@ export async function openTar(file: File, opts?: { parseFiles?: boolean, parseDi
         unparsable: unparsableFiles
     };
 }
+/**
+ * Turn a nanotar file entry into a File. Currently unused.
+ * @param input a nanotar TarFileItem
+ * @returns the extracted File
+ * @deprecated
+ */
 export function nanotarToFile(input: ntar.TarFileItem): File | undefined { // Currently unused?
     if (input.data === undefined) return;
     return new File([input.data.buffer as ArrayBuffer], input.name, { lastModified: input.attrs?.mtime, type: "application/tar" });
 }
 
+/**
+ * Construct a Split/Compressed File(s)
+ */
 export class FileConstructor {
+    /** The current files to split/compress */
     files: File[] = [];
-    processed: File[] = [];
+    /** An object used in Discord's File Upload stack that returns the max file size */
     nitroAndPayment: { getUserMaxFileSize?(): number; } = {};
+    /**
+     * Return the current total of bytes of the added files.
+     * @returns number
+     */
     getTotalSize() {
         return this.files.reduce((p, c) => p + c.size, 0);
     }
+    /**
+     * Figure out how often the files (in a tar archive) have to be split
+     * @param options Instead of grabbing the value, do it with preset ones
+     * @returns number
+     */
     getTotalSplits(options: { totalsize: number | undefined, maxsize: number | undefined; } = { totalsize: undefined, maxsize: undefined }): number {
         let { totalsize, maxsize } = options;
         totalsize = totalsize ?? this.getTotalSize(); // Total size of selected files
         maxsize = maxsize ?? this.getMaxFilesize(); // Max Per file
         return Math.max(0, Math.floor((totalsize - 1) / maxsize)); // -1 because otherwise if a file is selected that is EXACTLY the upload limit it will say it requires one split
     }
+    /**
+     * Get the maximum Filesize each File uploaded to Discord can be
+     * @returns number in bytes
+     */
     getMaxFilesize(): number {
         return (this.nitroAndPayment.getUserMaxFileSize || (() => 0))(); // two functions, run second if first undefined
     }
@@ -218,6 +322,11 @@ export class FileConstructor {
     //     );
     //     downloadFile(new File([data.buffer as ArrayBuffer], "testfile.tar"));
     // }
+    /**
+     * Turn the current files into split/compressed files
+     * @param options If there should be compression/splitting, and the file name
+     * @returns A promise resolving to an array of File, that can be uploaded to Discord
+     */
     async apply(options: { compress: boolean, split: boolean; name: string; }): Promise<File[]> {
         let tarball: File;
         if (this.files.length === 1) {
@@ -238,27 +347,53 @@ export class FileConstructor {
         }
         return multiOutput.length ? multiOutput : [output]; // 0 evals to false
     }
+    /**
+     * Create a new instance to Construct the files. Will pull an internal Discord function first.
+     */
     constructor() {
         waitFor("getUserMaxFileSize", e => this.nitroAndPayment = e);
     }
 }
+/**
+ * Destruct Split/Compressed Files into their original pieces
+ */
 export class FileDestructor {
+    /** The final output. Is either the `.tar` Archive or a file as-is. */
     final: File = fileToFile([], undefined); // Is either the TAR archive, the ungzipped file or the file as-is combined
+    /** A promise that will be resolved once the FileDestructor is done */
     isDone: Promise<void>; // Await this before trying to do anything with it
+    /** The files parsed from the input */
     parsedFiles: File[] = [];
+    /** The directories that were parsed from the input. I have not implemented a way to easily access their contents, but we can still list their names. */
     knownDirectories: string[] = [];
+    /** The elements found that nanotar couldn't deal with */
     unparsable: number = 0;
+    /** If the `final` attribute contains a tar or not */
     isTar: boolean | undefined; // when this is true you can access an overview of all available top-level files
+    /** The HTML Element to receive the Events `statusUpdate` and `statusFinished` when the status changes. */
     statusElm?: HTMLElement;
+    /** The current status. It changes. */
     status: string = "";
+    /**
+     * Update the Status to a new one and dispatch an Event.
+     * @param msg The new status
+     */
     updateStatus(msg: string) {
         this.status = msg;
         if (this.statusElm) this.statusElm.dispatchEvent(new Event("statusUpdate"));
     }
+    /**
+     * Finish the Status reporting and dispatch an Event. There shouldn't be any other statusUpdates following this one.
+     */
     finishStatus() {
         this.status = "Finished!";
         if (this.statusElm) this.statusElm.dispatchEvent(new Event("statusFinished"));
     }
+    /**
+     * Create a new instance to Destruct split/compressed files into their original pieces.
+     * @param files The files to destruct. Starting with unsplitting, then uncompressing.
+     * @param statusElm The HTML Element to receive status updates. Check `statusElm` attribute for more info.
+     */
     constructor(files: File[], statusElm?: HTMLElement) {
         let promising_resolve: any; // I don't want to
         this.statusElm = statusElm;

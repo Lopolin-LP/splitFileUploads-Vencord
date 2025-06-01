@@ -22,6 +22,9 @@ import { chooseFiles } from "./ownStuff";
 
 // Uploading
 
+/**
+ * This function opens the modal to upload things. No parameters needed.
+ */
 export function OpenUploadModal(): any {
     const SFU_inst = new SFU();
     let promising_resolver;
@@ -141,6 +144,11 @@ export function OpenUploadModal(): any {
     })();
 }
 
+/**
+ * This a react element that is used by `renderChatBarButton` in the `definePlugin` function in index.tsx. It's the upload button you find in the chat bar.
+ * @param param0 idk man
+ * @returns The react element as a ChatBarButtonFactory
+ */
 export const uploadButton: ChatBarButtonFactory = ({ isMainChat, type: { attachments } }) => {
     // Heavily copied from plugins/previewMessage
     if (!isMainChat) return null;
@@ -175,6 +183,10 @@ export const uploadButton: ChatBarButtonFactory = ({ isMainChat, type: { attachm
 
 // Downloading
 
+/**
+ * This function opens the modal to download things.
+ * @param message The message or an array of messages to get the attachments from
+ */
 export function OpenDownloadModal(message: Message | Message[]): any {
     const SFD_inst = new SFD(message);
     let promising_resolver;
@@ -190,7 +202,7 @@ export function OpenDownloadModal(message: Message | Message[]): any {
                     <div className="splitFileUploadModal" ref={function (el) { el && SFD_inst.setElm(el); promising_resolver(); }}>
                         <div className="splitFileUploadStatus"></div>
                         <table className="sfuList"></table>
-                        <table>
+                        <table className="sfuInfoParent">
                             <tr>
                                 <td className="sfuInfo"></td>
                             </tr>
@@ -229,6 +241,9 @@ export function OpenDownloadModal(message: Message | Message[]): any {
     })();
 }
 
+/**
+ * This a react element that is used by `messageAccessory`. It's the download button you find when hovering a message with split files.
+ */
 export const downloadIcon = () => {
     return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
         strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -241,6 +256,9 @@ export const downloadIcon = () => {
 
 // Multi-Message
 
+/**
+ * This function opens the modal to download things when it's split across multiple messages. It's accessed from the Upload Modal.
+ */
 export function OpenMultiModal(): any {
     let promising_resolver;
     const promising = new Promise(res => promising_resolver = res);
@@ -306,6 +324,10 @@ export function OpenMultiModal(): any {
     openModal(props => <OpenMultiModal_internal {...props} />);
 }
 
+/**
+ * This function opens the context menu used when uploading more than 10 Files. You access it by right-clicking the `uploadButton`, i.e. accessing the Context Menu.
+ * @param onContextMenuEvent The react event received from the `onContextMenu` property
+ */
 export function OpenMultiContextMenu(onContextMenuEvent: React.MouseEvent) {
     const currentChannelId = SelectedChannelStore.getChannelId();
     const menuItems = () => {
@@ -354,6 +376,11 @@ export function OpenMultiContextMenu(onContextMenuEvent: React.MouseEvent) {
 
 // Message Accessory
 
+/**
+ * This a react element that is used by `renderMessagePopoverButton` in the `definePlugin` function in index.tsx. It uses `downloadIcon` as the icon. This one calls `OpenDownloadModal` with the corresponding message.
+ * @param message The message to open the download modal with
+ * @returns I assume a function?
+ */
 export const messageAccessory = message => {
     // IF there's no attachments, don't even bother
     if (message.attachments.length === 0) return null;
