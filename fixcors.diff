@@ -1,0 +1,103 @@
+diff --git a/browser/background.js b/browser/background.js
+index 1f2d5ec1..0d4fc7c5 100644
+--- a/browser/background.js
++++ b/browser/background.js
+@@ -25,6 +25,15 @@ chrome.webRequest.onHeadersReceived.addListener(
+                 value: "text/css"
+             });
+         }
++        if (url.startsWith("https://cdn.discordapp.com/attachments/")) {
++            responseHeaders.push({
++                name: "Access-Control-Allow-Origin",
++                value: "*"
++            }, {
++                name: "Access-Control-Allow-Methods",
++                value: "GET, POST, OPTIONS"
++            });
++        }
+         return { responseHeaders };
+     },
+     { urls: ["https://raw.githubusercontent.com/*", "*://*.discord.com/*"], types: ["main_frame", "stylesheet"] },
+diff --git a/browser/manifest.json b/browser/manifest.json
+index 3463e46c..b6e33f9e 100644
+--- a/browser/manifest.json
++++ b/browser/manifest.json
+@@ -12,6 +12,7 @@
+ 
+     "host_permissions": [
+         "*://*.discord.com/*",
++        "https://cdn.discordapp.com/attachments/*",
+         "https://raw.githubusercontent.com/*"
+     ],
+ 
+diff --git a/browser/manifestv2.json b/browser/manifestv2.json
+index 0cb7cb32..2240346d 100644
+--- a/browser/manifestv2.json
++++ b/browser/manifestv2.json
+@@ -14,6 +14,7 @@
+         "webRequest",
+         "webRequestBlocking",
+         "*://*.discord.com/*",
++        "https://cdn.discordapp.com/attachments/*",
+         "https://raw.githubusercontent.com/*"
+     ],
+ 
+diff --git a/browser/modifyResponseHeaders.json b/browser/modifyResponseHeaders.json
+index 5b0b3e37..b465e67b 100644
+--- a/browser/modifyResponseHeaders.json
++++ b/browser/modifyResponseHeaders.json
+@@ -34,5 +34,27 @@
+             "resourceTypes": ["stylesheet"],
+             "urlFilter": "https://raw.githubusercontent.com/*"
+         }
++    },
++    {
++        "id": 3,
++        "action": {
++            "type": "modifyHeaders",
++            "responseHeaders": [
++                {
++                    "header": "Access-Control-Allow-Origin",
++                    "operation": "set",
++                    "value": "*"
++                },
++                {
++                    "header": "Access-Control-Allow-Methods",
++                    "operation": "set",
++                    "value": "GET, POST, OPTIONS"
++                }
++            ]
++        },
++        "condition": {
++            "resourceTypes": ["xmlhttprequest"],
++            "urlFilter": "https://cdn.discordapp.com/attachments/*"
++        }
+     }
+ ]
+diff --git a/src/main/index.ts b/src/main/index.ts
+index 4cc2e0db..d119ba17 100644
+--- a/src/main/index.ts
++++ b/src/main/index.ts
+@@ -106,7 +106,7 @@ if (IS_VESKTOP || !IS_VANILLA) {
+             }
+         };
+ 
+-        session.defaultSession.webRequest.onHeadersReceived(({ responseHeaders, resourceType }, cb) => {
++        session.defaultSession.webRequest.onHeadersReceived(({ responseHeaders, resourceType, url }, cb) => {
+             if (responseHeaders) {
+                 if (resourceType === "mainFrame")
+                     patchCsp(responseHeaders);
+@@ -118,6 +118,13 @@ if (IS_VESKTOP || !IS_VANILLA) {
+                     if (header)
+                         responseHeaders[header] = ["text/css"];
+                 }
++                // Fix CORS
++                if (url.startsWith("https://cdn.discordapp.com/attachments/")) {
++                    const header = findHeader(responseHeaders, "access-control-allow-origin");
++                    if (header) return;
++                    responseHeaders["Access-Control-Allow-Origin"] = ["*"];
++                    responseHeaders["Access-Control-Allow-Methods"] = ["GET, POST, OPTIONS"];
++                }
+             }
+ 
+             cb({ cancel: false, responseHeaders });
