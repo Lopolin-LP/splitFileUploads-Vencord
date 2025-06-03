@@ -19,18 +19,22 @@ Allows you to upload any file(s) by optimizing size and splitting the file as mu
 Fear not! Tools like [7-zip](https://www.7-zip.org/) help out in this case! They got all the features this plugin utilizes.
 
 ## Installation
-1. Download this repo into `src/userplugins/splitFileUploads`
+<!-- 1. Download this repo into `src/userplugins/splitFileUploads`
 2. Naviate to that folder
 3. `pnpm init`
 4. `pnpm add nanotar`
 5. Go back to the root of Vencord's Source Code
-6. run `git apply .\src\userplugins\splitFileUploads\fixcors.patch` or `git apply src/userplugins/splitFileUploads/fixcors.patch`
+6. run `git apply --ignore-whitespace .\src\userplugins\splitFileUploads\fixcors.diff` or `git apply --ignore-whitespace src/userplugins/splitFileUploads/fixcors.diff`
 7. Rebuild and reinject Vencord and you're done!
-8. Now go and read how to [use this plugin](#Usage), as it _can_ be advanced!
+8. Now go and read how to [use this plugin](#Usage), as it _can_ be advanced! -->
+1. Download this repo into `src/userplugins/splitFileUploads`
+2. Naviate to that folder
+3. `pnpm install` (if this fails, try `pnpm rb`)
+   - **WARNING: this applies a patch to Vencords Source Code!** Read [below](#why-does-this-need-to-apply-a-patch-with-git) why.
+4. Rebuild and reinject Vencord and you're done!
+5. Now go and read how to [use this plugin](#Usage), as it _can_ be advanced!
 
-Note: Fancier version with a simple `pnpm i` will come at some point, right now I don't understand any of it!
-
-### Why do I need to apply a patch?
+### Why does this need to apply a patch with git?
 Downloading the files off of discords servers. `https://cdn.discordapp.com/attachments/*` does not include the `Access-Control-Allow-Origin` and `Access-Control-Allow-Methods` headers, which means the (very reasonable) CORS Policy _from Discord themselves_ blocks the connection. This patch file includes additional fixes **that need to be applied in Vencords source code directly** to rewrite the headers to include them. Vencord already does rewrites for a few sites, such as `https://raw.githubusercontent.com/`.
 
 You may ask yourself "wait, why do I see images that were sent as attachments then?!", and the answer is _check the raw data of that message_. You will see all attachments have a URL (to the raw content that can be downloaded), and a Proxy URL, where discord includes those headers, but only for a few specific file types, such as images, videos and text files. The images are loaded from the proxy. The `.001` or `.gz` files aren't detected as text files, and thus are not accessible via their proxy. Unfunnily enough, this also applies to some Videos or Audio files if they are encoded in a format that Discord doesn't understand, such as (the very good) AV1 or (the horrible) AAC.
