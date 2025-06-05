@@ -31,8 +31,9 @@ Fear not! Tools like [7-zip](https://www.7-zip.org/) help out in this case! They
 2. Add this line to `pnpm-workspace.yaml` under packages: `- src/userplugins/splitFileUploads-Vencord`
    - We need to do this so that this plugin is recognized as an installable package
 3. Naviate to that folder
-4. run `pnpm i`
-   - **WARNING: this applies a patch to Vencords Source Code!** Read [below](#why-does-this-need-to-apply-a-patch-with-git) why.
+4. run `pnpm i` (yes we need to let it update the lock-file)
+   - **WARNING: this applies a patch to Vencords Source Code, i.e. modifies it!** Read [below](#why-does-this-need-to-apply-a-patch-with-git) why.
+   - If you ever run into issues now when doing `git pull`, read the [troubleshooting section](#troubleshooting).
 5. Rebuild and reinject Vencord and you're done!
 6. Now go and read how to [use this plugin](#Usage), as it _can_ be advanced!
 
@@ -90,9 +91,16 @@ Anything that starts with `https://cdn.discordapp.com/attachments/` will get the
 - `Access-Control-Allow-Origin` set to `*` to allow all origins (this means that `discord.com` is allowed to access the files coming from `cdn.discordapp.com`)
 - `Access-Control-Allow-Methods` set to `GET, POST, OPTIONS` to allow different methods of accessing the content from that page. (Search online to learn more.)
 
+## Troubleshooting
+### `git pull` fails
+1. Make sure you don't have any unsaved modifications done to vencords source code. Read online how to back them up, as we will delete all of them.
+2. `git revert .` to delete all changes
+3. `git pull` to update vencord to the master branch
+4. `pnpm i` to let this "package" "reinstall" the modifications. Here it shouldn't throw any errors in the console, as we have a clean source code, but if it does, open an issue, as vencords source code has changed and git can't apply the changes anymore.
+
 ## Dependencies on npm
 - [fflate](https://www.npmjs.com/package/fflate) for (de)compressing.
-  - Already included in Vencord.
+  - Already included in Vencord, so nothing new.
 - [nanotar](https://www.npmjs.com/package/nanotar) for bundling multiple files together.
   - Windows 11 Explorer supports tar by default, otherwise just use [7-zip](https://www.7-zip.org/), or whatever your linux distro has.
 

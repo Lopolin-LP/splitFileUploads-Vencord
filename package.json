@@ -7,7 +7,7 @@
     "main": "index.tsx",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "install": "cd ../../.. && git apply --ignore-whitespace src/userplugins/splitFileUploads-Vencord/fixcors.diff || exit 0"
+        "postinstall": "cd ../../.. && git apply --ignore-whitespace src/userplugins/splitFileUploads-Vencord/fixcors.diff || exit 0"
     },
     "keywords": [
         "bypass upload limit",
@@ -19,6 +19,7 @@
     "license": "GPL-3.0-or-later",
     "packageManager": "pnpm@10.4.1",
     "dependencies": {
+        "fflate": "^0.8.2",
         "nanotar": "^0.2.0"
     }
 }
