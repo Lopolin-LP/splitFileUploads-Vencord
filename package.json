@@ -2,7 +2,7 @@
     "name": "splitfileuploads",
     "private": true,
     "homepage": "https://github.com/Lopolin-LP/splitFileUploads-Vencord",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "Allows you to upload any file(s) by optimizing size and splitting the file as much as possible.",
     "main": "index.tsx",
     "scripts": {
