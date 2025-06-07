@@ -2,7 +2,7 @@
 Allows you to upload any file(s) by optimizing size and splitting the file as much as possible.
 **Warning: Extra installation steps required!**
 
-<!-- I know there's now preview. It's AV1 encoded, not h264. -->
+<!-- I know there's no preview. It's AV1 encoded, not h264 or hevc. -->
 [Showcase](https://files.catbox.moe/eoxpq2.mp4)
 
 ### Techniques
@@ -28,10 +28,10 @@ Fear not! Tools like [7-zip](https://www.7-zip.org/) help out in this case! They
    - ...unless you are using the extension or a userscript; read the [troubleshooting section](#cors-issues-on-the-browser).
 5. Now go and read how to [use this plugin](#Usage), as it _can_ be advanced!
 
-### Why does this need to apply a patch with git?
-Downloading the files off of discords servers. `https://cdn.discordapp.com/attachments/*` does not include the `Access-Control-Allow-Origin` and `Access-Control-Allow-Methods` headers, which means the Browser _by default_ blocks the connection. This patch file includes additional fixes **that need to be applied in Vencords source code directly** to rewrite the headers to include them. Vencord already does rewrites for a few sites, such as `https://raw.githubusercontent.com/`.
+### Why does this need to apply a patch to Vencord's Source Code?
+Downloading the files off of Discords servers. Any reply from `https://cdn.discordapp.com/attachments/*` does not include the `Access-Control-Allow-Origin` and `Access-Control-Allow-Methods` headers, which means the Browser blocks the connection, as it has no permission by the sender to access this content from another domain. This patch file includes additional fixes **that need to be applied in Vencords Source Code directly** to rewrite the headers to include them. Vencord already does rewrites for a few sites, such as `https://raw.githubusercontent.com/`, however those are CSP related and not CORS.
 
-You may ask yourself "wait, why do I see images that were sent as attachments then?!", and the answer is _check the raw data of that message_. You will see all attachments have a URL (to the raw content that can be downloaded), and a Proxy URL, where discord includes those headers, but only for a few specific file types, such as images, videos and text files. The images are loaded from the proxy. The `.001` or `.gz` files aren't detected as text files, and thus are not accessible via their proxy. Unfunnily enough, this also applies to some Videos or Audio files if they are encoded in a format that Discord doesn't understand, such as (the very good) AV1 or (the horrible) AAC.
+You may ask yourself "wait, why do I see images that were sent as attachments then?!", and the answer is _check the raw data of that message_. You will see all attachments have a URL (to the raw content that can be downloaded), and a Proxy URL, where Discord includes those headers, but only for a few specific file types, such as images, videos and text files. The images are loaded from the proxy. The `.001` or `.gz` files aren't detected as text files, and thus are not accessible via their proxy. Unfunnily enough, this also applies to some Videos or Audio files if they are encoded in a format that Discord doesn't understand, such as (the very good) AV1 or (the horrible) AAC (which is just as horrible as MP3).
 
 Read more about the [patch itself below](#the-patch).
 
@@ -70,22 +70,18 @@ If you really want to, you can also upload more than 10 split files. For non-Nit
 ## The patch
 Now here's the details about the `fixcors/patch.diff` itself, for transparency:
 
-### The files
-  - in the `browser` directory we patch the Vencord Browser Extension.
-    - `background.js` and `mainfest.json` for Manifest V3.
-    - `modifyResponseHeaders.json` and `mainfestv2.json` for Manifest V2.
-    - the manifests ask for permission to modify content from `https://cdn.discordapp.com/attachments/`, while the other file is for actually rewriting the requests coming from discords cdn.
-  - we also need to patch for Electron (to support Discords Clients and Vesktop). This happens in `src/main/index.ts`.
-
 ### What it does
 Anything that starts with `https://cdn.discordapp.com/attachments/` will get the following Response Headers (i.e. the Headers received from Discords Servers) rewritten:
 - `Access-Control-Allow-Origin` set to `*` to allow all origins (this means that `discord.com` is allowed to access the files coming from `cdn.discordapp.com`)
 - `Access-Control-Allow-Methods` set to `GET, POST, OPTIONS` to allow different methods of accessing the content from that page. (Search online to learn more.)
 
+### Where it does
+It simply imports the `modifyCorsForCDNattachments` function from `fixcors/electron.ts` into `src/main/csp.ts` and runs it in the same function that does the actual CSP fixing. As there's no other API provided to add those things (probably because it isn't necessary for any other plugin), it injects into the source code directly. Once there is a proper solution in place I will obviously rewrite this to work with it.
+
 ## Troubleshooting
 ### `git pull` fails
 1. Make sure you don't have any unsaved modifications done to vencords source code. Read online how to back them up, as we will delete all of them.
-2. `git checkout .` to delete all uncommited changes
+2. `git checkout .` to delete all unstaged changes
 3. `git pull` to update vencord to the master branch
 4. `pnpm i` to let this "package" "reinstall" the modifications. Here it shouldn't throw any errors in the console, as we have a clean source code, but if it does, open an issue, as vencords source code has changed and git can't apply the changes anymore.
 
