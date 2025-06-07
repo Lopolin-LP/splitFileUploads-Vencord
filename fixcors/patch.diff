@@ -1,0 +1,45 @@
+diff --git a/src/main/csp.ts b/src/main/csp.ts
+index 2faee606..eb367190 100644
+--- a/src/main/csp.ts
++++ b/src/main/csp.ts
+@@ -2,12 +2,13 @@
+  * Vencord, a Discord client mod
+  * Copyright (c) 2025 Vendicated and contributors
+  * SPDX-License-Identifier: GPL-3.0-or-later
+  */
+ 
+ import { session } from "electron";
++import { modifyCorsForCDNattachments } from "userplugins/splitFileUploads-Vencord/fixcors/electron";
+ 
+ type PolicyMap = Record<string, string[]>;
+ 
+ export const ConnectSrc = ["connect-src"];
+ export const MediaSrc = [...ConnectSrc, "img-src", "media-src"];
+ export const CssSrc = ["style-src", "font-src"];
+@@ -115,24 +116,25 @@ const patchCsp = (headers: PolicyMap) => {
+ 
+         headers[header] = [stringifyPolicy(csp)];
+     }
+ };
+ 
+ export function initCsp() {
+-    session.defaultSession.webRequest.onHeadersReceived(({ responseHeaders, resourceType }, cb) => {
++    session.defaultSession.webRequest.onHeadersReceived(({ responseHeaders, resourceType, url }, cb) => {
+         if (responseHeaders) {
+             if (resourceType === "mainFrame")
+                 patchCsp(responseHeaders);
+ 
+             // Fix hosts that don't properly set the css content type, such as
+             // raw.githubusercontent.com
+             if (resourceType === "stylesheet") {
+                 const header = findHeader(responseHeaders, "content-type");
+                 if (header)
+                     responseHeaders[header] = ["text/css"];
+             }
++            modifyCorsForCDNattachments(url, responseHeaders);
+         }
+ 
+         cb({ cancel: false, responseHeaders });
+     });
+ 
+     // assign a noop to onHeadersReceived to prevent other mods from adding their own incompatible ones.

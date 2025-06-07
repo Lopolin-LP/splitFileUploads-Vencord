@@ -212,6 +212,13 @@ export class SFU {
 const discordFilesCache: { [key: string]: File; } = {};
 
 /**
+ * Removes all Downloaded files from Cache. Hopefully frees up memory.
+ */
+export function clearDiscordFilesCache() {
+    Object.keys(discordFilesCache).forEach(key => delete discordFilesCache[key]);
+}
+
+/**
  * Split File Destructor Status - An internal class for the SFD class. It's used to update the status of the download process.
  */
 class SFDstatus {

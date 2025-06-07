@@ -2,7 +2,7 @@
 ## `git diff` for patching on Windows Powershell
 Windows likes to be special, and we don't want everything to be diff'd. So we run:
 ```powershell
-(git diff -U6 browser/ src/main/index.ts) -join "`n" | Out-String | New-Item -Force -Path fixcors.diff
+(git diff -U6 src/main/csp.ts) -join "`n" | Out-String | New-Item -Force -Path patch.diff
 ```
 
 # Code documentation
@@ -22,3 +22,6 @@ Here are all the UI Elements created by this plugin.
 
 ## ownStuff.tsx
 This contains some helper functions.
+
+## fixcors/electron.ts
+Contains the CORS patch for electron (Discord Desktop & Vesktop)

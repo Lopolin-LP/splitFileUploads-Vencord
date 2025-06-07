@@ -17,7 +17,7 @@ import { Button, ChannelStore, ContextMenuApi, FluxDispatcher, Forms, Menu, Reac
 import { Message } from "discord-types/general";
 import { ReactNode } from "react";
 
-import { currentSMU, SFD, SFU, SMD, SMU } from "./fileWrapper";
+import { clearDiscordFilesCache, currentSMU, SFD, SFU, SMD, SMU } from "./fileWrapper";
 import { chooseFiles } from "./ownStuff";
 
 // Uploading
@@ -332,8 +332,8 @@ export function OpenMultiContextMenu(onContextMenuEvent: React.MouseEvent) {
     const currentChannelId = SelectedChannelStore.getChannelId();
     const menuItems = () => {
         let selectedSMU: SMU | undefined = currentSMU[currentChannelId];
+        const toReturn: ReactNode[] = [];
         if (selectedSMU) {
-            const toReturn: ReactNode[] = [];
             selectedSMU.getStuffForMenu().forEach(item => {
                 toReturn.push((
                     <Menu.MenuItem
@@ -353,15 +353,23 @@ export function OpenMultiContextMenu(onContextMenuEvent: React.MouseEvent) {
                     action={() => { selectedSMU?.delete(); selectedSMU = undefined; }}
                 />
             ));
-            return toReturn;
         } else {
-            return [(
+            toReturn.push((
                 <Menu.MenuItem
                     id="sfu_smu_noItems"
                     label="There's no queued files for this channel!"
                 />
-            ) as ReactNode];
+            ) as ReactNode);
         }
+        toReturn.push((
+            <Menu.MenuItem
+                id="sfu_smu_clear_cache"
+                label="Clear Download Cache"
+                color="danger"
+                action={() => { clearDiscordFilesCache(); }}
+            />
+        ));
+        return toReturn;
     };
     ContextMenuApi.openContextMenu(onContextMenuEvent, () => (
         <Menu.Menu
