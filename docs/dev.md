@@ -5,6 +5,11 @@ Windows likes to be special, and we don't want everything to be diff'd. So we ru
 (git diff -U6 src/main/csp.ts) -join "`n" | Out-String | New-Item -Force -Path patch.diff
 ```
 
+## Name suggestion for official CSP/CORS Api
+- OfCORSCSP
+  - Offcourse CSP
+  - Of course, CSP!
+
 # Code documentation
 This ain't a small project by any means, so here's a quick rundown on the most important stuff
 
