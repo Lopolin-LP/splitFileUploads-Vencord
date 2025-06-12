@@ -2,7 +2,7 @@
 ## `git diff` for patching on Windows Powershell
 Windows likes to be special, and we don't want everything to be diff'd. So we run:
 ```powershell
-(git diff -U6 src/main/csp.ts) -join "`n" | Out-String | New-Item -Force -Path patch.diff
+(git diff -U6 src/main/csp/index.ts) -join "`n" | Out-String | New-Item -Force -Path patch.diff
 ```
 
 ## Name suggestion for official CSP/CORS Api

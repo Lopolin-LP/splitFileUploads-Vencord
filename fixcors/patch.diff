@@ -1,22 +1,22 @@
-diff --git a/src/main/csp.ts b/src/main/csp.ts
-index 2faee606..eb367190 100644
---- a/src/main/csp.ts
-+++ b/src/main/csp.ts
-@@ -2,12 +2,13 @@
-  * Vencord, a Discord client mod
+diff --git a/src/main/csp/index.ts b/src/main/csp/index.ts
+index fefbc774..18e487d8 100644
+--- a/src/main/csp/index.ts
++++ b/src/main/csp/index.ts
+@@ -3,12 +3,13 @@
   * Copyright (c) 2025 Vendicated and contributors
   * SPDX-License-Identifier: GPL-3.0-or-later
   */
  
+ import { NativeSettings } from "@main/settings";
  import { session } from "electron";
 +import { modifyCorsForCDNattachments } from "userplugins/splitFileUploads-Vencord/fixcors/electron";
  
  type PolicyMap = Record<string, string[]>;
  
  export const ConnectSrc = ["connect-src"];
- export const MediaSrc = [...ConnectSrc, "img-src", "media-src"];
+ export const ImageSrc = [...ConnectSrc, "img-src"];
  export const CssSrc = ["style-src", "font-src"];
-@@ -115,24 +116,25 @@ const patchCsp = (headers: PolicyMap) => {
+@@ -125,24 +126,25 @@ const patchCsp = (headers: PolicyMap) => {
  
          headers[header] = [stringifyPolicy(csp)];
      }
