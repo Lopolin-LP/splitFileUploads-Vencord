@@ -6,7 +6,7 @@
 
 import { showNotification } from "@api/Notifications";
 import { saveFile } from "@utils/web";
-import { ChannelStore, DraftType, PermissionsBits, PermissionStore, UploadHandler } from "@webpack/common";
+import { ChannelStore, DraftType, PermissionsBits, PermissionStore, UploadManager } from "@webpack/common";
 
 /**
  * Prompts the user to choose one or multiple file from their system. Vencord has a built-in function under the (almost?) exact same, however it prompts only for a single file, while we allow multiple.
@@ -60,7 +60,18 @@ export function notifErr(msg: string) {
  * @param channelId The channel to attach them to
  */
 export function addAttachments(files: File[], channelId: string) {
-    UploadHandler.promptToUpload(files, ChannelStore.getChannel(channelId), DraftType.ChannelMessage);
+    // UploadHandler.promptToUpload(files, ChannelStore.getChannel(channelId), DraftType.ChannelMessage);
+    // Vencord.Webpack.findByProps("addFiles")
+    UploadManager.addFiles({
+        channelId: channelId,
+        draftType: DraftType.ChannelMessage,
+        files: files.map(e => ({
+            file: e,
+            isThumbnail: false,
+            platform: 1 // WHAT DOES THIS MEAN.
+        })),
+        showLargeMessageDialog: false
+    });
 }
 
 // Permission Infos and Attaching, stolen from plugins/fakeNitro
