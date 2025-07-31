@@ -6,8 +6,8 @@
 
 // type NativeFile = globalThis.File;
 
+import { Message, MessageAttachment } from "@vencord/discord-types";
 import { Alerts, MessageStore, SelectedChannelStore, showToast } from "@webpack/common";
-import { Message, MessageAttachment } from "discord-types/general";
 
 import { bytesToText, FileConstructor, FileDestructor, fileToFile, isValidSplitFile } from "./fileConstructor";
 import { addAttachments, downloadFile, hasAttachmentPerms, notifErr } from "./ownStuff";
@@ -62,7 +62,7 @@ export class SMD {
 }
 
 // Split File Uploader
-type SFU_settings = { compress: boolean, split: boolean; name: string; };
+type SFU_settings = { compress: boolean, split: boolean; name: string | undefined; };
 type SFU_react_settings = { [K in keyof SFU_settings]: [SFU_settings[keyof SFU_settings], Function] };
 /**
  * Split File Uploader
@@ -72,7 +72,7 @@ export class SFU {
     public default_settings: SFU_settings = {
         compress: false,
         split: true,
-        name: "Unknown"
+        name: undefined
     };
     /** The channel id in which this is happening */
     channelId: string;

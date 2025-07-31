@@ -327,12 +327,12 @@ export class FileConstructor {
      * @param options If there should be compression/splitting, and the file name
      * @returns A promise resolving to an array of File, that can be uploaded to Discord
      */
-    async apply(options: { compress: boolean, split: boolean; name: string; }): Promise<File[]> {
+    async apply(options: { compress: boolean, split: boolean; name: string | undefined; }): Promise<File[]> {
         let tarball: File;
         if (this.files.length === 1) {
-            tarball = this.files[0];
+            tarball = options.name ? fileToFile([this.files[0]], undefined, { name: options.name }) : this.files[0];
         } else {
-            tarball = await createTar(this.files, new File([], options.name + ".tar")); // why is name even defined if it's deprecated?! no wonder my tarballs didn't have any name
+            tarball = await createTar(this.files, new File([], (options.name ?? "Unknown") + ".tar")); // why is name even defined if it's deprecated?! no wonder my tarballs didn't have any name
         }
         let output: File = tarball;
         let multiOutput: File[] = [];

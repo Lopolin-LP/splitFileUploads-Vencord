@@ -13,8 +13,8 @@ import {
     ModalRoot,
     openModal
 } from "@utils/modal";
+import { Message } from "@vencord/discord-types";
 import { Button, ChannelStore, ContextMenuApi, FluxDispatcher, Forms, Menu, React, SelectedChannelStore, showToast, Switch, Text, TextArea, TextInput } from "@webpack/common";
-import { Message } from "discord-types/general";
 import { ReactNode } from "react";
 
 import { clearDiscordFilesCache, currentSMU, SFD, SFU, SMD, SMU } from "./fileWrapper";
